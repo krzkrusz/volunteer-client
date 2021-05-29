@@ -1,0 +1,24 @@
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.GridPane?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.TextField?>
+<GridPane fx:controller="com.krzkrusz.volunteer.client.app.Controller"
+          xmlns:fx="http://javafx.com/fxml" alignment="center" hgap="10" vgap="10">
+
+    <HBox spacing="10" alignment="bottom_right"
+          GridPane.columnIndex="1" GridPane.rowIndex="0">
+        <Button text="Test GoldBach"
+                onAction="#testGoldbach"/>
+        <Button text="Test flops"
+                onAction="#testFlops"/>
+        <Button text="Test sort"
+                onAction="#testSort"/>
+    </HBox>
+
+    <Label fx:id="label"
+            GridPane.columnIndex="1" GridPane.rowIndex="1" text="Execution time = "/>
+
+</GridPane>

@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+    }
+}
+dependencies {
+    implementation 'junit:junit:4.12'
+    implementation 'com.google.guava:guava:19.0'
+    implementation 'org.glassfish.jersey.core:jersey-client:2.25.1'
+    implementation 'org.glassfish.jersey.media:jersey-media-json-jackson:2.25.1'
+
+    implementation 'org.projectlombok:lombok:1.18.18'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.krzkrusz.volunteer.client.app.Main'
+    }
+}
