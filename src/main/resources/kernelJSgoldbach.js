@@ -73,7 +73,7 @@ var n = 2;
 var srcArrayA = new IntArray(n);
 var dstArray = new IntArray(n);
 srcArrayA[0] = 19;
-srcArrayA[1] = 16
+srcArrayA[1] = 16;
 var srcA = Pointer.to(srcArrayA);
 var dst = Pointer.to(dstArray);
 

@@ -2,6 +2,7 @@ package com.krzkrusz.volunteer.client.util;
 
 import com.krzkrusz.volunteer.client.model.ComputationResult;
 import com.krzkrusz.volunteer.client.model.FunctionDTO;
+import com.krzkrusz.volunteer.client.model.KernelDTO;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -21,6 +22,7 @@ public class JerseyClient {
     private String GOLDBACH_REST_URI;
     private String FLOPS_REST_URI;
     private String SORT_REST_URI;
+    private String GOLDBACH_KERNEL_REST_URI;
 
     Client client = ClientBuilder.newClient();
 
@@ -37,6 +39,7 @@ public class JerseyClient {
                 GOLDBACH_REST_URI = baseUri + "/goldbach";
                 FLOPS_REST_URI = baseUri + "/flops";
                 SORT_REST_URI = baseUri + "/sort";
+                GOLDBACH_KERNEL_REST_URI = baseUri + "/goldbachkernel";
             }
         }
     }
@@ -61,6 +64,13 @@ public class JerseyClient {
                 .target(SORT_REST_URI)
                 .request(MediaType.APPLICATION_JSON)
                 .get(FunctionDTO.class);
+    }
+
+    public KernelDTO getGoldbachKernel() {
+        return client
+                .target(GOLDBACH_KERNEL_REST_URI)
+                .request(MediaType.APPLICATION_JSON)
+                .get(KernelDTO.class);
     }
 
     public Response sendComputationResult(ComputationResult result) {

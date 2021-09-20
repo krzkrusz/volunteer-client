@@ -30,18 +30,18 @@ public class TaskExecutor {
         ScriptEngineManager manager = new ScriptEngineManager();
         ScriptEngine engine = manager.getEngineByName("js");
         // read script file
+        long startTime = System.currentTimeMillis();
+
         String result = (String) engine.eval(Files.newBufferedReader(Paths.get(path), StandardCharsets.UTF_8));
-        System.out.println(result);
 
 //        Invocable inv = (Invocable) engine;
-//        long startTime = System.currentTimeMillis();
 //        // call function from script file
 //        Object result = inv.invokeFunction(functionName, args);
-//        long stopTime = System.currentTimeMillis();
+        long stopTime = System.currentTimeMillis();
 
-        //System.out.println("ExecutionTime = " + (stopTime - startTime));
-        //System.out.println(result);
-        return result;
+        System.out.println("ExecutionTime = " + (stopTime - startTime));
+        System.out.println(result);
+        return new Result(result, stopTime-startTime);
     }
 
     public static Result executeFromString(String code, String functionName, Object... args) throws ScriptException, NoSuchMethodException, IOException {
@@ -66,25 +66,45 @@ public class TaskExecutor {
         long startTime = System.currentTimeMillis();
 
         String programSource =
-                "__kernel void " +
-                        "sampleKernel(__global const float *a," +
-                        "             __global const float *b," +
-                        "             __global float *c)" +
-                        "{" +
-                        "    int gid = get_global_id(0);" +
-                        "    c[gid] = a[gid] + b[gid];" +
+                "int is_prime(int n){"+
+                        "for (int j = 2; j <= sqrt(n); j++)"+
+                        "{"+
+                        "if((n%j) == 0){"+
+                        "return 0;"+
+                        "}"+
+                        "}"+
+                        "return 1;"+
+                        "}"+
+
+                        "__kernel void sampleKernel(__global const int *a,"+
+                        "__global int *c)"+
+                        "{"+
+
+                        "int gid = get_global_id(0);"+
+                        "int result = 0;"+
+                        "int i = 2;"+
+
+                        "if(a[gid]>2 && a[gid]%2==0){"+
+                        "for (int j = a[gid]-i; j > 2; j--)"+
+                        "{"+
+                        "if(is_prime(i) == 1 && is_prime(j) == 1)"+
+                        "{"+
+                        "result = 1;"+
+                        "break;"+
+                        "}"+
+                        "i++;"+
+                        "}"+
+                        "}"+
+
+                        "c[gid] = result;"+
                         "}";
 
-        int n = 10_000_000;
-        float srcArrayA[] = new float[n];
-        float srcArrayB[] = new float[n];
-        float dstArray[] = new float[n];
-        for (int i = 0; i < n; i++) {
-            srcArrayA[i] = i;
-            srcArrayB[i] = i;
-        }
+        int n = 2;
+        int srcArrayA[] = new int[n];
+        int dstArray[] = new int[n];
+            srcArrayA[0] = 200000019;
+            srcArrayA[1] = 200000016;
         Pointer srcA = Pointer.to(srcArrayA);
-        Pointer srcB = Pointer.to(srcArrayB);
         Pointer dst = Pointer.to(dstArray);
 
 
@@ -132,16 +152,13 @@ public class TaskExecutor {
                 CL.clCreateCommandQueue(context, device, 0, null);
 
         // Allocate the memory objects for the input and output data
-        cl_mem memObjects[] = new cl_mem[3];
+        cl_mem memObjects[] = new cl_mem[2];
         memObjects[0] = CL.clCreateBuffer(context,
                 CL.CL_MEM_READ_ONLY | CL.CL_MEM_COPY_HOST_PTR,
-                Sizeof.cl_float * n, srcA, null);
+                Sizeof.cl_int * n, srcA, null);
         memObjects[1] = CL.clCreateBuffer(context,
-                CL.CL_MEM_READ_ONLY | CL.CL_MEM_COPY_HOST_PTR,
-                Sizeof.cl_float * n, srcB, null);
-        memObjects[2] = CL.clCreateBuffer(context,
                 CL.CL_MEM_READ_WRITE,
-                Sizeof.cl_float * n, null, null);
+                Sizeof.cl_int * n, null, null);
 
         // Create the program from the source code
         cl_program program = CL.clCreateProgramWithSource(context,
@@ -158,8 +175,6 @@ public class TaskExecutor {
                 Sizeof.cl_mem, Pointer.to(memObjects[0]));
         CL.clSetKernelArg(kernel, 1,
                 Sizeof.cl_mem, Pointer.to(memObjects[1]));
-        CL.clSetKernelArg(kernel, 2,
-                Sizeof.cl_mem, Pointer.to(memObjects[2]));
 
         // Set the work-item dimensions
         long global_work_size[] = new long[]{n};
@@ -170,22 +185,22 @@ public class TaskExecutor {
                 global_work_size, local_work_size, 0, null, null);
 
         // Read the output data
-        CL.clEnqueueReadBuffer(commandQueue, memObjects[2], CL.CL_TRUE, 0,
-                n * Sizeof.cl_float, dst, 0, null, null);
+        CL.clEnqueueReadBuffer(commandQueue, memObjects[1], CL.CL_TRUE, 0,
+                n * Sizeof.cl_int, dst, 0, null, null);
 
         // Release kernel, program, and memory objects
         CL.clReleaseMemObject(memObjects[0]);
         CL.clReleaseMemObject(memObjects[1]);
-        CL.clReleaseMemObject(memObjects[2]);
         CL.clReleaseKernel(kernel);
         CL.clReleaseProgram(program);
         CL.clReleaseCommandQueue(commandQueue);
         CL.clReleaseContext(context);
 
-
+        for(int i = 0; i<n; i++) {
+            System.out.println(srcArrayA[i] + "___" + dstArray[i]);
+        }
         long stopTime = System.currentTimeMillis();
         System.out.println("ExecutionTime = " + (stopTime - startTime));
-        System.out.println("");
         return new Result(null, stopTime - startTime);
     }
 }

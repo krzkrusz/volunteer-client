@@ -17,8 +17,7 @@ public class TaskExecutorTest {
 
     @Test
     public void executeKernelJSgoldbach() throws NoSuchMethodException, ScriptException, IOException {
-        String result = (String) TaskExecutor.execute(TaskExecutor.KERNEL_GOLDBACH_PATH, null, null);
-        System.out.println(result);
+        TaskExecutor.execute(TaskExecutor.KERNEL_GOLDBACH_PATH, null, null);
     }
 
     @Test
